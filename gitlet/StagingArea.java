@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
-public class StagingArea implements Serializable {
+public class StagingArea {
 
     private Map<String, String> addedFiles = new TreeMap<>();
     private Set<String> removedFiles = new HashSet<>();
@@ -20,6 +20,7 @@ public class StagingArea implements Serializable {
         }
 
         commitTree.commit(message, references);
+        repository.saveFileCopies(references);
 
         repository.save();
     }

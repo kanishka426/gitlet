@@ -1,8 +1,10 @@
 package gitlet;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Map;
 
 import static gitlet.Utils.*;
 
@@ -31,15 +33,15 @@ public class Repository implements Serializable {
 
     /** The Commit Tree of the repository */
 
-    public static final CommitTree COMMIT_TREE = new CommitTree();
+    public final CommitTree COMMIT_TREE = new CommitTree();
 
     /** The Staging Area of the repository */
 
-    public static final StagingArea STAGING_AREA = new StagingArea();
+    public final StagingArea STAGING_AREA = new StagingArea();
 
     /** Log of the repository */
 
-    public static final Log LOG = new Log();
+    public final Log LOG = new Log(COMMIT_TREE);
 
 
     /** Check for if Gitlet is initialised */
@@ -51,19 +53,46 @@ public class Repository implements Serializable {
     public void setupPersistence(){
         GITLET_DIR.mkdir();
         File fileCopies = join(GITLET_DIR, "fileCopies");
+        fileCopies.mkdir();
         File repository = join(GITLET_DIR, "repository.bin");
+        try{
+            repository.createNewFile();
+        } catch(IOException e){
+            System.out.println("I/O exception error occured while setting up persistence.");
+        }
     }
 
     public void remove(String fileName){
+        File file = join(CWD, fileName);
+        if(file.exists()){
+            file.delete();
+        }
 
     }
 
     public File getFile(String fileName){
-        return;
+        File file = join(CWD, fileName);
+        if(file.exists()){
+            return file;
+        }else{
+            return null;
+        }
+    }
+
+    public void saveFileCopies(Map<String, String> references){
+
+        for(Map.Entry<String, String> entry: references.entrySet()){
+            File fileFolder = join(GITLET_DIR, "fileCopies", entry.getKey());
+            File fileCopy = join(fileFolder, entry.getValue());
+            File fileCurrent = join(CWD, entry.getKey());
+            writeContents(fileCopy, readContents(fileCurrent));
+        }
+        return ;
     }
 
     public void save(){
-
+        File repo = join(GITLET_DIR, "repository.bin");
+        writeContents(repo, this);
     }
 
 

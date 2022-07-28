@@ -1,12 +1,14 @@
 package gitlet;
 
+import afu.org.checkerframework.checker.oigj.qual.O;
+
 import java.io.Serializable;
 import java.time.Month;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.*;
 import java.time.LocalDateTime;
 
-public class CommitTree implements Serializable {
+public class CommitTree implements Iterable<Commit> {
     private Commit HEAD;
     private String HEAD_BRANCH_NAME;
     private HashMap<String, Commit> branches = new HashMap();
@@ -29,11 +31,47 @@ public class CommitTree implements Serializable {
         branches.replace(HEAD_BRANCH_NAME, HEAD);
     }
 
+
     public Map<String, String> getReferences(){
         return HEAD.getReferences();
     }
 
+    @Override
+    public Iterator<Commit> iterator(){
+        return new TreeIterator();
+    }
 
+    public Iterator<Commit> iterator(String branchName){
+        return new TreeIterator(branchName);
+    }
+
+    private class TreeIterator implements Iterator<Commit>{
+
+        private Commit curr;
+
+        public TreeIterator(){
+            curr = HEAD;
+        }
+
+        public TreeIterator(String branchName){
+            this.curr = branches.get(branchName);
+        }
+
+        @Override
+        public boolean hasNext(){
+            if(curr == sentinel){
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        public Commit next(){
+            Commit returnValue = curr;
+            curr = curr.getParent();
+            return returnValue;
+        }
+    }
 
 
 

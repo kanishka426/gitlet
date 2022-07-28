@@ -3,7 +3,7 @@ package gitlet;
 import java.io.File;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+ *  @author Kanishka Tiwari
  */
 public class Main {
 
@@ -18,14 +18,12 @@ public class Main {
         String firstArg = args[0];
         switch(firstArg) {
             case "init": {
-                if((Repository.exists()){
+                if(Repository.exists()){
                     System.out.println("A Gitlet version-control system already exists in the current directory.");
                     return;
                 }
                 Repository repository = new Repository();
                 repository.setupPersistence();
-
-
             }
                 break;
             case "add":{
