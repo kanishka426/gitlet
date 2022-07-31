@@ -2,7 +2,9 @@ package gitlet;
 
 // TODO: any imports you need here
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date; // TODO: You'll likely use this in this class
 import java.util.HashMap;
 import java.util.Map;
@@ -28,14 +30,16 @@ public class Commit {
     private Commit parent;
     private Date dateTime;
 
+    private boolean isMerge = false;
     private Map<String, String> fileReferences;
 
     private String id;
-    public Commit(String message, Commit parent) {
+    public Commit(String message, Commit parent, Map<String, String> fileReferences) {
         this.message = message;
         this.parent = parent;
-        this.fileReferences = new TreeMap<>();
-
+        this.dateTime = new Date();
+        this.fileReferences = fileReferences;
+        this.id = Utils.sha1(message, parent, dateTime.toString(), fileReferences.toString());
     }
 
 
@@ -52,6 +56,29 @@ public class Commit {
 
     public Commit getParent(){ return this.parent; }
 
+    public String getID(){
+        return this.id;
+    }
+
     /** ------------------------------------------------------ */
+
+    @Override
+    public String toString(){
+        StringBuilder str = new StringBuilder();
+        str.append("===");
+        str.append("commit " + this.id + "\n");
+        SimpleDateFormat format = new SimpleDateFormat("EE MMM d HH:mm:ss yyyy Z");
+        str.append("Date: " + format.format(dateTime));
+        str.append('\n');
+        if(this.isMerge){
+            /** TO DO */
+        }
+        str.append(message);
+        if(message.charAt(message.length() - 1) != '\n'){
+            str.append('\n');
+        }
+
+        return str.toString();
+    }
 
 }

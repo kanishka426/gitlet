@@ -16,18 +16,15 @@ public class CommitTree implements Iterable<Commit> {
     public CommitTree(){
         branches.put(
                 "master",
-                new Commit("initial commit",null)
+                new Commit("initial commit",null, new TreeMap<>())
         );
         this.HEAD = branches.get("master");
         this.HEAD_BRANCH_NAME = "master";
         this.sentinel = HEAD;
     }
     public void commit(String message, Map<String, String> fileReferences) {
-        Commit commit = new Commit(message, HEAD);
+        Commit commit = new Commit(message, HEAD, fileReferences);
         HEAD = commit;
-        for (Map.Entry<String, String> entry : fileReferences.entrySet()) {
-            HEAD.addReference(entry.getKey(), entry.getValue());
-        }
         branches.replace(HEAD_BRANCH_NAME, HEAD);
     }
 

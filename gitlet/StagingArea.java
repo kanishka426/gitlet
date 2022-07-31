@@ -10,8 +10,14 @@ public class StagingArea {
     private Set<String> removedFiles = new HashSet<>();
 
 
+    private void clear(){
+        addedFiles.clear();
+        removedFiles.clear();
+    }
+
     public void commit(Repository repository, CommitTree commitTree, String message){
-        Map<String, String> references = commitTree.getReferences();
+        Map<String, String> references = new TreeMap<>();
+        references.putAll(commitTree.getReferences());
         for(String fileToRemove: removedFiles){
             references.remove(fileToRemove);
         }
@@ -22,6 +28,7 @@ public class StagingArea {
         commitTree.commit(message, references);
         repository.saveFileCopies(references);
 
+        clear();
         repository.save();
     }
 
