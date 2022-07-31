@@ -6,27 +6,30 @@ import java.util.*;
 
 public class StagingArea {
 
-    private Map<String, String> addedFiles = new TreeMap<>();
+    private Map<String, String> addedReferences = new TreeMap<>();
+
+    private Map<String, Object> addedFiles = new TreeMap<>();
     private Set<String> removedFiles = new HashSet<>();
 
 
     private void clear(){
-        addedFiles.clear();
+        addedReferences.clear();
         removedFiles.clear();
+        addedFiles.clear();
     }
 
     public void commit(Repository repository, CommitTree commitTree, String message){
         Map<String, String> references = new TreeMap<>();
-        references.putAll(commitTree.getReferences());
+        references.putAll(commitTree.getReferences(repository));
         for(String fileToRemove: removedFiles){
             references.remove(fileToRemove);
         }
-        for(Map.Entry<String, String> entry: addedFiles.entrySet()){
+        for(Map.Entry<String, String> entry: addedReferences.entrySet()){
             references.put(entry.getKey(), entry.getValue());
         }
 
-        commitTree.commit(message, references);
-        repository.saveFileCopies(references);
+        commitTree.commit(repository, message, references);
+        repository.saveFileCopies(addedReferences, addedFiles);
 
         clear();
         repository.save();
@@ -44,12 +47,13 @@ public class StagingArea {
         String fileSHA1 = Utils.sha1(Utils.readContents(file));
         String currentSHA1 = null; // Current SHA1 of filename.
 
-        if(commitTree.getReferences().containsKey(fileName)) { /**Checks if the file exists in the previous commit. */
-            currentSHA1 = commitTree.getReferences().get(fileName);
+        if(commitTree.getReferences(repository).containsKey(fileName)) { /**Checks if the file exists in the previous commit. */
+            currentSHA1 = commitTree.getReferences(repository).get(fileName);
         }
 
         if(currentSHA1 == null || !fileSHA1.equals(currentSHA1)) {
-            addedFiles.put(fileName, fileSHA1);
+            addedReferences.put(fileName, fileSHA1);
+            addedFiles.put(fileName, Utils.readContents(file));
         }
 
         repository.save();
@@ -59,11 +63,11 @@ public class StagingArea {
 
     public void rm(Repository repository, CommitTree commitTree, String fileName){
         Boolean printError = true;
-        if(addedFiles.containsKey(fileName)){
-            addedFiles.remove(fileName);
+        if(addedReferences.containsKey(fileName)){
+            addedReferences.remove(fileName);
             printError = false;
         }
-        if(commitTree.getReferences().containsKey(fileName)) {
+        if(commitTree.getReferences(repository).containsKey(fileName)) {
             removedFiles.add(fileName);
             repository.remove(fileName);
             printError = false;

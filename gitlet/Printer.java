@@ -1,14 +1,9 @@
 package gitlet;
 
-public class Log {
+public class Printer {
 
-    private CommitTree commitTree;
 
-    public Log(CommitTree commitTree){
-        this.commitTree = commitTree;
-    }
-
-    public void log(){
+    public void log(CommitTree commitTree){
         StringBuilder str = new StringBuilder();
         for(Commit node: commitTree){
             str.append(node.toString());
@@ -17,6 +12,11 @@ public class Log {
     }
 
     public void globalLog(){
+
+    }
+
+    public void status(Repository repository, CommitTree commitTree, StagingArea stagingArea){
+
 
     }
 

@@ -33,7 +33,7 @@ public class Repository implements Serializable {
 
     /** The Commit Tree of the repository */
 
-    public final CommitTree COMMIT_TREE = new CommitTree();
+    public final CommitTree COMMIT_TREE = new CommitTree(this);
 
     /** The Staging Area of the repository */
 
@@ -41,7 +41,11 @@ public class Repository implements Serializable {
 
     /** Log of the repository */
 
-    public final Log LOG = new Log(COMMIT_TREE);
+    public final Printer PRINTER = new Printer();
+
+    public static Repository loadRepository() {
+        return Utils.readObject(join(GITLET_DIR, "repository.bin"), Repository.class);
+    }
 
 
     /** Check for if Gitlet is initialised */
@@ -58,9 +62,28 @@ public class Repository implements Serializable {
         try{
             repository.createNewFile();
         } catch(IOException e){
-            System.out.println("I/O exception error occured while setting up persistence.");
+            System.out.println("I/O exception error occurred while setting up persistence.");
         }
+        File commitFolder = join(GITLET_DIR, "commitFolder");
+        commitFolder.mkdir();
     }
+
+    public void add(String fileName){
+        STAGING_AREA.add(this, COMMIT_TREE, fileName);
+    }
+
+    public void commit(String message){
+        STAGING_AREA.commit(this, COMMIT_TREE, message);
+    }
+
+    public void rm(String fileName){
+        STAGING_AREA.rm(this, COMMIT_TREE, fileName);
+    }
+
+    public void log(){
+        PRINTER.log(COMMIT_TREE);
+    }
+
 
     public void remove(String fileName){
         File file = join(CWD, fileName);
@@ -69,6 +92,15 @@ public class Repository implements Serializable {
         }
 
     }
+
+    /** BAD DESIGN - */
+    public static Commit getCommit(String reference){ // Should not be static.
+        Commit c = readObject(join(GITLET_DIR, "commitFolder", reference), Commit.class);
+        return c;
+    }
+    /** ------------ */
+
+
 
     public File getFile(String fileName){
         File file = join(CWD, fileName);
@@ -79,21 +111,35 @@ public class Repository implements Serializable {
         }
     }
 
-    public void saveFileCopies(Map<String, String> references){
+
+
+    public void saveCommit(String reference, Commit commit){
+        File commitFile = join(GITLET_DIR, "commitFolder", reference);
+        writeContents(commitFile, commit);
+    }
+
+
+    public void saveFileCopies(Map<String, String> references, Map<String, Object> files){
 
         for(Map.Entry<String, String> entry: references.entrySet()){
             File fileFolder = join(GITLET_DIR, "fileCopies", entry.getKey());
             File fileCopy = join(fileFolder, entry.getValue());
-            File fileCurrent = join(CWD, entry.getKey());
-            writeContents(fileCopy, readContents(fileCurrent));
+            Object commitData = files.get(entry.getKey());
+            writeContents(fileCopy, commitData);
         }
-        return ;
+
     }
+
+
 
     public void save(){
         File repo = join(GITLET_DIR, "repository.bin");
         writeContents(repo, this);
+        System.exit(0);
     }
+
+
+
 
 
 }

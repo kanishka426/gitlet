@@ -1,36 +1,39 @@
 package gitlet;
 
-import afu.org.checkerframework.checker.oigj.qual.O;
 
-import java.io.Serializable;
-import java.time.Month;
-import java.time.format.DateTimeFormatterBuilder;
+
 import java.util.*;
-import java.time.LocalDateTime;
 
 public class CommitTree implements Iterable<Commit> {
-    private Commit HEAD;
+    private String HEAD;
     private String HEAD_BRANCH_NAME;
-    private HashMap<String, Commit> branches = new HashMap();
-    private Commit sentinel;
-    public CommitTree(){
+    private HashMap<String, String> branches = new HashMap();
+    private String sentinel;
+
+    public CommitTree(Repository repository){
+        Commit c = new Commit("initial commit",null, new TreeMap<>());
         branches.put(
-                "master",
-                new Commit("initial commit",null, new TreeMap<>())
+                "master", c.getID()
         );
         this.HEAD = branches.get("master");
         this.HEAD_BRANCH_NAME = "master";
         this.sentinel = HEAD;
+        repository.saveCommit(sentinel, c);
     }
-    public void commit(String message, Map<String, String> fileReferences) {
+
+    public void commit(Repository repository, String message, Map<String, String> fileReferences) {
         Commit commit = new Commit(message, HEAD, fileReferences);
-        HEAD = commit;
+        HEAD = commit.getID();
         branches.replace(HEAD_BRANCH_NAME, HEAD);
+        repository.saveCommit(HEAD, commit);
+
+        repository.save();
     }
 
 
-    public Map<String, String> getReferences(){
-        return HEAD.getReferences();
+    public Map<String, String> getReferences(Repository repository) {
+        Commit commit = repository.getCommit(HEAD);
+        return commit.getReferences();
     }
 
     @Override
@@ -42,9 +45,10 @@ public class CommitTree implements Iterable<Commit> {
         return new TreeIterator(branchName);
     }
 
+
     private class TreeIterator implements Iterator<Commit>{
 
-        private Commit curr;
+        private String curr;
 
         public TreeIterator(){
             curr = HEAD;
@@ -56,7 +60,7 @@ public class CommitTree implements Iterable<Commit> {
 
         @Override
         public boolean hasNext(){
-            if(curr == sentinel){
+            if(curr.equals(sentinel)){
                 return false;
             }
             return true;
@@ -64,8 +68,8 @@ public class CommitTree implements Iterable<Commit> {
 
         @Override
         public Commit next(){
-            Commit returnValue = curr;
-            curr = curr.getParent();
+            Commit returnValue = Repository.getCommit(curr);
+            curr = returnValue.getParent();
             return returnValue;
         }
     }

@@ -2,6 +2,7 @@ package gitlet;
 
 // TODO: any imports you need here
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -16,7 +17,7 @@ import java.util.TreeMap;
  *
  *  @author Kanishka Tiwari
  */
-public class Commit {
+public class Commit implements Serializable {
     /**
      * TODO: add instance variables here.
      *
@@ -27,14 +28,14 @@ public class Commit {
 
     /** The message of this Commit. */
     private String message;
-    private Commit parent;
+    private String parent;
     private Date dateTime;
 
     private boolean isMerge = false;
     private Map<String, String> fileReferences;
 
     private String id;
-    public Commit(String message, Commit parent, Map<String, String> fileReferences) {
+    public Commit(String message, String parent, Map<String, String> fileReferences) {
         this.message = message;
         this.parent = parent;
         this.dateTime = new Date();
@@ -54,7 +55,7 @@ public class Commit {
 
     public String message(){ return message; }
 
-    public Commit getParent(){ return this.parent; }
+    public String getParent(){ return this.parent; }
 
     public String getID(){
         return this.id;
